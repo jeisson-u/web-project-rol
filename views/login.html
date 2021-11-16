@@ -1,0 +1,47 @@
+{{define "head"}}
+
+{{end}}
+
+
+{{define "content"}}
+<div class="w-full bg-ubackground h-screen p-10 backdrop-filter backdrop-blur-lg bg-no-repeat">
+    <div class="p-10 border border-red-100 rounded-md flex flex-col max-w-sm m-auto bg-white bg-opacity-50">
+        <div class="flex flex-col w-full mb-5">
+            <label class="font-semibold text-sm p-2">Correo</label>
+            <input id="login-email" class="input" type="email" name="email" value="admin@ucompensar.edu.co" required/>
+        </div>
+        <div class="flex flex-col w-full mb-5">
+            <label class="font-semibold text-sm p-2">Contraseña</label>
+            <input id="login-password" class="input" type="password" name="password" value="12345Admin#" required/>
+        </div>
+        <div class="flex flex-col w-full mb-5">
+            <button id="login-button" class="btn">Ingresar</button>
+        </div>
+    </div>
+</div>
+{{end}}
+{{define "script"}}
+<script>
+
+    onClickEvent.push({
+        id:'#login-button',
+        onClick:()=>{
+            var email = document.getElementById("login-email").value;
+            var password = document.getElementById("login-password").value;
+
+            if(!email || !password) {
+                alert('Correo y/o contraseña inválida');
+                return;
+            }
+
+            httpPOST('/api/v1/security/login',{email:email,password:password}).then((data)=>{
+                localStorage.setItem('ucompensar.user',btoa(JSON.stringify(data)));
+                dispose({onClickEvent:'#login-button'});
+                location.href='/home';
+            }).catch(e=>alert(e));
+
+        }
+    });
+
+</script>
+{{end}}

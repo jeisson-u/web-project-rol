@@ -1,0 +1,101 @@
+{{define "head"}} {{end}} {{define "content"}}
+<section class="w-full">
+  <header class="flex flex-row justify-between">
+    <span id="user_name">Bienvenido</span>
+    <button class="btn" id="logout-button">Cerrar sessión</button>
+  </header>
+  <div
+    id="menu_items_container"
+    class="p-10 flex flex-row justify-evenly flex-wrap"
+  >
+
+  </div>
+</section>
+{{end}} {{define "script"}}
+<script>
+  const isAuthenticated = () => {
+    if (!localStorage.getItem("ucompensar.user")) {
+      location.href = "/";
+    }
+  };
+  const getLocalUser = () => {
+    return JSON.parse(atob(localStorage.getItem("ucompensar.user")));
+  };
+  const setUserName = (user) => {
+    console.log(user);
+    var elem = document.querySelector("#user_name");
+    if (!elem) return;
+    elem.innerHTML = `Bienvenido ${user.name}`;
+  };
+  const getUserApps = (userId) =>
+    new Promise((resolve, reject) => {
+      httpGET(`/api/v1/user/${userId}/apps`)
+        .then((data) => {
+          resolve(data);
+          return;
+        })
+        .catch((e) => reject(e));
+    });
+
+  //components
+  class MenuItemCard extends HTMLElement {
+    connectedCallback() {
+      this.innerHTML = `
+            <div
+                class="
+                    border border-gray-200
+                    rounded-lg
+                    px-5
+                    py-5
+                    hover:border-yellow-600 hover:text-yellow-600
+                    cursor-pointer
+                    m-1
+                    font-semibold
+                "
+                >
+            </div>`;
+      const button = this.querySelector("div");
+      const url= this.getAttribute("url");
+      button.addEventListener("click", (e)=>this.handleClick(url));
+      button.innerText = `> ` + this.getAttribute("name");
+
+     console.log(this.url)
+    }
+
+    handleClick(url) {
+        console.log('action', url);
+        if(url){
+            location.href= url;
+        }
+ 
+    }
+  }
+  window.customElements.define("menuitem-component", MenuItemCard);
+
+  //events
+  onClickEvent.push({
+    id: "#logout-button",
+    onClick: () => {
+      localStorage.clear();
+      dispose({onClickEvent:'#logout-button'});
+      location.href = "/";
+    },
+  });
+
+  // init
+  isAuthenticated();
+  const user = getLocalUser();
+  setUserName(user);
+  getUserApps(user.id).then((data) => {
+    const menuItemContainer = document.querySelector("#menu_items_container");
+
+    data.forEach((app) => {
+      const menuItem = document.createElement("menuitem-component");
+      menuItem.setAttribute("url", `/app/${app.id}`);
+      menuItem.setAttribute("name", app.name);
+      menuItem.className='w-1/3';
+      menuItemContainer.appendChild(menuItem);
+    });
+  }).catch(e=>alert(e));
+</script>
+{{end}}

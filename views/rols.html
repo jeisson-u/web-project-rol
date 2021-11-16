@@ -1,0 +1,102 @@
+{{define "head"}} {{end}} {{define "content"}}
+<section class="w-full">
+  <header class="flex flex-row justify-between">
+    <h2 class="font-bold text-4xl">Roles</h1>
+    <button class="btn" id="logout-button">Cerrar sessión</button>
+  </header>
+  <div class="w-full bg-white p-5 flex flex-row flex-wrap justify-evenly mt-20">
+    <div class="flex flex-col w-1/3 mb-5">
+        <label class="font-semibold text-sm p-2">Nombre</label>
+        <input id="user-name" class="input bg-yellow-100 m-1" type="text" name="name" value="" required/>
+    </div>
+    <div class="flex flex-col w-1/8 mb-5">
+      <button class="btn" onclick="createUser()">Crear</button>
+    </div>
+  </div>
+  <div>
+      <table class="table-auto border border-gray-200 w-full mt-20">
+        <thead>
+            <tr>
+                <th class="text-center">Nombre</th>
+                <th class="text-center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+  </div>
+</section>
+{{end}} {{define "script"}}
+<script>
+ const isAuthenticated = () => {
+    if (!localStorage.getItem("ucompensar.user")) {
+      location.href = "/";
+    }
+  };
+  const getLocalUser = () => {
+    return JSON.parse(atob(localStorage.getItem("ucompensar.user")));
+  };
+  const getUsers = () =>
+    new Promise((resolve, reject) => {
+      httpGET(`/api/v1/rol`)
+        .then((data) => {
+          resolve(data);
+          return;
+        })
+        .catch((e) => reject(e));
+    });
+
+    const createUser=()=>{
+        var email = document.getElementById("user-email").value;
+        var password = document.getElementById("user-password").value;
+        var name = document.getElementById("user-name").value;
+
+        if(!name || !email || !password){
+            alert('Datos incompletos');
+            return;
+        }
+
+        httpPOST(`/api/v1/rol`,{name:name}).then(()=>{
+            alert('USUARIO CREADO CORRECTAMENTE');
+            getUsers().then((data) => {
+                    const tbody = document.querySelector("tbody");
+                    tbody.className='hover:bg-gray-100';
+                    tbody.innerHTML='';
+
+                    data.forEach((user) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML=`<td class="px-2 pt-4 text-center align-middle">${user.name}</td><td class="px-2 pt-4 text-center align-middle">${user.email}</td><td class="px-2 pt-4 text-center align-middle">${user.state==1?'✔ ACTIVO':'⛔ INACTIVO'}</td>`;
+                    tbody.appendChild(row);
+                    });
+                }).catch(e=>alert(e));
+        }).catch(e=>alert(e));
+
+
+    }
+  //events
+  onClickEvent.push({
+    id: "#logout-button",
+    onClick: () => {
+      localStorage.clear();
+      dispose({onClickEvent:'#logout-button'});
+      location.href = "/";
+    },
+  });
+
+  isAuthenticated();
+ // const user = getLocalUser();
+  getUsers().then((data) => {
+    const tbody = document.querySelector("tbody");
+ 
+    tbody.innerHTML='';
+
+    data.forEach((user) => {
+      const row = document.createElement("tr");
+      row.className='hover:bg-gray-100';
+      row.innerHTML=`<td class="px-2 pt-4 text-center align-middle">${user.name}</td><td class="px-2 pt-4 text-center align-middle">${user.state==1?'✔ ACTIVO':'⛔ INACTIVO'}</td>`;
+      tbody.appendChild(row);
+    });
+  }).catch(e=>alert(e));
+
+</script>
+{{end}}

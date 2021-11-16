@@ -1,0 +1,71 @@
+{{define "head"}} {{end}} {{define "content"}}
+<section class="w-full">
+  <header class="flex flex-row justify-between">
+    <h2 class="font-bold text-4xl">Facturación</h1>
+    <button class="btn" id="logout-button">Cerrar sessión</button>
+  </header>
+ 
+</section>
+{{end}} {{define "script"}}
+<script>
+ const isAuthenticated = () => {
+    if (!localStorage.getItem("ucompensar.user")) {
+      location.href = "/";
+    }
+  };
+  const getLocalUser = () => {
+    return JSON.parse(atob(localStorage.getItem("ucompensar.user")));
+  };
+  const getUsers = () =>
+    new Promise((resolve, reject) => {
+      httpGET(`/api/v1/user`)
+        .then((data) => {
+          resolve(data);
+          return;
+        })
+        .catch((e) => reject(e));
+    });
+
+    const createUser=()=>{
+        var email = document.getElementById("user-email").value;
+        var password = document.getElementById("user-password").value;
+        var name = document.getElementById("user-name").value;
+
+        if(!name || !email || !password){
+            alert('Datos incompletos');
+            return;
+        }
+
+        httpPOST(`/api/v1/user`,{name:name,email:email,password:password}).then(()=>{
+            alert('USUARIO CREADO CORRECTAMENTE');
+            getUsers().then((data) => {
+                    const tbody = document.querySelector("tbody");
+                    tbody.className='hover:bg-gray-100';
+                    tbody.innerHTML='';
+
+                    data.forEach((user) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML=`<td class="px-2 pt-4 text-center align-middle">${user.name}</td><td class="px-2 pt-4 text-center align-middle">${user.email}</td><td class="px-2 pt-4 text-center align-middle">${user.state==1?'✔ ACTIVO':'⛔ INACTIVO'}</td>`;
+                    tbody.appendChild(row);
+                    });
+                }).catch(e=>alert(e));
+        }).catch(e=>alert(e));
+
+
+    }
+  //events
+  onClickEvent.push({
+    id: "#logout-button",
+    onClick: () => {
+      localStorage.clear();
+      dispose({onClickEvent:'#logout-button'});
+      location.href = "/";
+    },
+  });
+
+  isAuthenticated();
+ // const user = getLocalUser();
+ 
+
+</script>
+{{end}}
